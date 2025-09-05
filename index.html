@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小白不吃七遊戲系統</title>
+    <link rel="icon" href="image/LiyuChillGuy.svg" type="image/svg+xml">
+    <!-- Font Awesome CDN for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* 引入字體 */
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;900&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'M PLUS Rounded 1c', sans-serif; /* 日式圓體作為主要字體 */
+            background: linear-gradient(45deg, #0a0a2e, #16213e, #0f3460);
+            background-size: 400% 400%;
+            animation: galaxyMove 20s ease infinite;
+            overflow: hidden;
+            height: 100vh;
+            position: relative;
+            color: #fff; /* 預設文字顏色 */
+        }
+        
+        @keyframes galaxyMove {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        .stars {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            z-index: 1;
+        }
+        
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 2s infinite;
+        }
+        
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+        
+        .game-container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            z-index: 2;
+        }
+        
+        .game-header {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(90deg, rgba(0,255,255,0.2), rgba(255,0,255,0.2));
+            border-bottom: 2px solid #00ffff;
+            box-shadow: 0 0 20px rgba(0,255,255,0.5);
+            display: flex; 
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .game-title {
+            font-family: 'Orbitron', monospace; /* 標題保留科技感字體 */
+            font-size: clamp(1.5rem, 4vw, 2.5rem);
+            font-weight: 900;
+            color: #00ffff;
+            text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 30px #00ffff;
+            margin-bottom: 10px;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes glow {
+            from { text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 30px #00ffff; }
+            to { text-shadow: 0 0 20px #00ffff, 0 0 30px #00ffff, 0 0 40px #00ffff; }
+        }
+        
+        .score-board {
+            display: flex;
+            justify-content: center; 
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .score-item {
+            background: rgba(0,0,0,0.7);
+            padding: 10px 20px;
+            border-radius: 25px;
+            border: 2px solid #ff00ff;
+            color: #ff00ff;
+            font-weight: 700;
+            box-shadow: 0 0 15px rgba(255,0,255,0.5);
+            min-width: 100px;
+            text-align: center;
+            display: flex; /* 使內容與圖示水平對齊 */
+            align-items: center;
+            justify-content: center;
+            gap: 8px; /* 圖示與文字間距 */
+        }
+        .score-item i {
+            font-size: 1.2rem; /* 圖示大小 */
+            color: #00ffff; /* 圖示顏色 */
+        }
+
+
+        /* 獨立的遊戲控制按鈕 */
+        .game-controls-buttons {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 30; /* 確保在最上層 */
+        }
+
+        .game-control-btn {
+            background: rgba(0,255,255,0.3);
+            border: 2px solid #00ffff;
+            color: #00ffff;
+            font-size: 1.2rem;
+            width: 45px; /* 固定寬度 */
+            height: 45px; /* 固定高度 */
+            border-radius: 50%; /* 圓形按鈕 */
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 10px rgba(0,255,255,0.5);
+            text-shadow: 0 0 5px rgba(0,255,255,0.5);
+        }
+
+        .game-control-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(0,255,255,0.8);
+        }
+        
+        .game-area {
+            position: relative;
+            height: calc(100vh - 200px); 
+            overflow: hidden;
+        }
+        
+        .player {
+            position: absolute;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 192px; /* 角色寬度增加 120% (160 * 1.2) */
+            height: 192px; /* 角色高度增加 120% */
+            transition: all 0.1s ease;
+            z-index: 10;
+            filter: drop-shadow(0 0 10px rgba(255,255,255,0.8));
+        }
+        
+        .player img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            transition: transform 0.3s ease;
+        }
+        
+        .player.flip img {
+            transform: scaleX(-1);
+        }
+        
+        .falling-number {
+            position: absolute;
+            font-size: 2rem;
+            font-weight: 900;
+            padding: 10px;
+            border-radius: 50%;
+            text-align: center;
+            min-width: 60px;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fall linear; /* 僅移動，不旋轉 */
+            z-index: 5;
+            /* 統一數字樣式，不區分好壞，讓玩家自行判斷 */
+            background: linear-gradient(45deg, #00bfff, #9933ff); 
+            color: #fff;
+            box-shadow: 0 0 15px rgba(100,200,255,0.7);
+        }
+
+        .number-red-envelope {
+            background: linear-gradient(45deg, #ffd700, #ff8c00); /* 金色漸層 */
+            color: #8b0000; /* 深紅色文字 */
+            font-size: 2.2rem; /* 紅包字體稍大 */
+            box-shadow: 0 0 30px rgba(255,215,0,0.9), 0 0 40px rgba(255,140,0,0.8); /* 更強烈的金光 */
+            transform: scale(1.1); /* 讓紅包看起來更大一點，不旋轉 */
+            animation: fall linear, red-envelope-glow 1s infinite alternate; /* 獨特光暈動畫 */
+        }
+        
+        .number-blood-pack { /* 補血道具樣式 */
+            background: linear-gradient(45deg, #ff69b4, #ff1493); /* 粉紅色漸層 */
+            color: #fff; /* 文字顏色 */
+            font-size: 2.2rem; /* 與紅包類似的字體大小 */
+            box-shadow: 0 0 20px rgba(255,105,180,0.8), 0 0 30px rgba(255,20,147,0.7);
+            transform: scale(1.1); /* 與紅包類似的縮放 */
+        }
+
+        .number-time-boost { /* 補秒道具樣式 */
+            background: linear-gradient(45deg, #8a2be2, #9933cc); /* 紫色漸層 */
+            color: #fff; /* 白色文字 */
+            font-size: 2.2rem; /* 與紅包類似的字體大小 */
+            box-shadow: 0 0 20px rgba(138,43,226,0.8), 0 0 30px rgba(153,51,204,0.7);
+            transform: scale(1.1); /* 與紅包類似的縮放 */
+        }
+
+
+        @keyframes red-envelope-glow {
+            from { box-shadow: 0 0 30px rgba(255,215,0,0.9), 0 0 40px rgba(255,140,0,0.8); }
+            to { box-shadow: 0 0 40px rgba(255,215,0,1), 0 0 50px rgba(255,140,0,1); }
+        }
+        
+        @keyframes fall {
+            from { transform: translateY(-100px); } /* 移除旋轉 */
+            to { transform: translateY(calc(100vh + 100px)); } /* 移除旋轉 */
+        }
+        
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 15;
+        }
+        
+        /* 統一模態視窗樣式 */
+        .game-over, .victory, .pause-overlay, .rules-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+        .pause-overlay { z-index: 110; }
+        .rules-overlay { z-index: 120; } /* 規則最高層級 */
+        
+        .modal-content {
+            text-align: center;
+            padding: 40px;
+            background: linear-gradient(45deg, rgba(0,50,100,0.9), rgba(50,0,100,0.9));
+            border-radius: 20px;
+            border: 3px solid #00ffff;
+            box-shadow: 0 0 50px rgba(0,255,255,0.8);
+            max-width: 80%; /* 限制最大寬度 */
+            max-height: 90%; /* 限制最大高度 */
+            overflow-y: auto; /* 內容過多時可滾動 */
+        }
+        
+        .modal-title {
+            font-family: 'Orbitron', monospace; /* 標題保留科技感字體 */
+            font-size: 3rem;
+            font-weight: 900;
+            margin-bottom: 20px;
+            animation: glow 1s ease-in-out infinite alternate;
+        }
+        
+        .victory .modal-title {
+            color: #ffd700;
+            text-shadow: 0 0 20px #ffd700;
+        }
+        
+        .game-over .modal-title {
+            color: #ff0000;
+            text-shadow: 0 0 20px #ff0000;
+        }
+
+        .rules-overlay .modal-title {
+            color: #00ffcc; /* 規則標題顏色 */
+            text-shadow: 0 0 20px #00ffcc;
+        }
+        
+        .modal-btn { /* 統一模態視窗內按鈕樣式 */
+            background: linear-gradient(45deg, #00ff00, #00ffff);
+            color: #000;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            border-radius: 25px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 20px rgba(0,255,255,0.5);
+            font-family: 'M PLUS Rounded 1c', sans-serif;
+            margin-left: 10px; /* 增加按鈕間距 */
+            margin-right: 10px;
+        }
+        
+        .modal-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 30px rgba(0,255,255,0.8);
+        }
+
+        .modal-btn.orange {
+            background: linear-gradient(45deg, #ff9900, #ffcc00);
+        }
+        .modal-btn.purple {
+            background: linear-gradient(45deg, #a03cff, #ff66ff);
+        }
+
+        .rules-content p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 10px;
+            color: #ccc;
+            text-align: left;
+        }
+
+        .rules-content ul {
+            list-style-type: disc;
+            margin-left: 20px;
+            text-align: left;
+            color: #ccc;
+        }
+        .rules-content li {
+            margin-bottom: 5px;
+        }
+        .rules-content strong {
+            color: #00ffff;
+        }
+        .rules-content .red-text {
+            color: #ff6666;
+        }
+        .rules-content .green-text { /* 新增綠色文字用於規則說明 */
+            color: #00ff00;
+        }
+        .rules-content .pink-text { /* 新增粉紅色文字用於規則說明 */
+            color: #ff69b4;
+        }
+        .rules-content .purple-text { /* 新增紫色文字用於規則說明 */
+            color: #8a2be2;
+        }
+        .rules-content .yellow-text {
+            color: #ffd700;
+        }
+        
+        .copyright {
+            position: fixed;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(255,255,255,0.7);
+            font-size: 0.8rem;
+            z-index: 20;
+            white-space: nowrap; 
+            text-overflow: ellipsis; 
+            overflow: hidden; 
+            max-width: 90%; 
+        }
+        
+        .mascot {
+            position: fixed;
+            bottom: 20px; /* 和版權保持距離 */
+            left: 20px; /* 移到左下角 */
+            width: 80px; /* 放大吉祥物 */
+            height: 80px;
+            cursor: pointer;
+            z-index: 20;
+            transition: all 0.3s ease;
+            filter: drop-shadow(0 0 10px rgba(255,255,255,0.8));
+            animation: mascot-glow 3s ease-in-out infinite;
+        }
+        
+        @keyframes mascot-glow {
+            0%, 100% { filter: drop-shadow(0 0 10px rgba(255,255,255,0.8)); }
+            50% { filter: drop-shadow(0 0 20px rgba(255,255,255,1)) drop-shadow(0 0 30px rgba(0,255,255,0.8)); }
+        }
+        
+        .mascot:hover {
+            transform: scale(1.2);
+        }
+        
+        .controls {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+            z-index: 20;
+        }
+        
+        .control-btn {
+            width: 80px; 
+            height: 80px;
+            background: rgba(0,255,255,0.3);
+            border: 2px solid #00ffff;
+            border-radius: 50%;
+            color: #00ffff;
+            font-size: 2rem; 
+            font-weight: 900;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: none; /* 預設隱藏，僅在小螢幕顯示 */
+        }
+        
+        .control-btn:active {
+            background: rgba(0,255,255,0.6);
+            transform: scale(0.9);
+        }
+        
+        @media (max-width: 768px) {
+            .control-btn {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .player {
+                width: 144px; /* 行動裝置下角色放大 120% (120 * 1.2) */
+                height: 144px;
+            }
+            
+            .falling-number {
+                font-size: 1.5rem;
+                min-width: 50px;
+                min-height: 50px;
+            }
+
+            .number-red-envelope, .number-blood-pack, .number-time-boost {
+                font-size: 1.8rem;
+                min-width: 60px;
+                min-height: 60px;
+            }
+
+            .game-area {
+                height: calc(100vh - 250px); 
+            }
+
+            .modal-content {
+                padding: 25px; 
+            }
+
+            .modal-title {
+                font-size: 2.2rem;
+            }
+
+            .rules-content p, .rules-content li {
+                font-size: 0.95rem;
+            }
+
+            .game-controls-buttons {
+                top: 10px;
+                right: 10px;
+            }
+            .game-control-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
+            }
+            .mascot {
+                bottom: 10px;
+                left: 10px;
+                width: 60px;
+                height: 60px;
+            }
+        }
+        
+        .explosion {
+            position: absolute;
+            pointer-events: none;
+            z-index: 15;
+        }
+        
+        .explosion-particle {
+            position: absolute;
+            width: 10px; 
+            height: 10px;
+            border-radius: 50%;
+            animation: explode 1s ease-out forwards;
+        }
+        
+        @keyframes explode {
+            0% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0) translate(var(--dx), var(--dy));
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="stars"></div>
+    
+    <div class="game-container">
+        <div class="game-header">
+            <h1 class="game-title">小白不吃七遊戲系統</h1>
+            <div class="score-board">
+                <div class="score-item"><i class="fas fa-star"></i> 分數: <span id="score">0</span></div>
+                <div class="score-item"><i class="fas fa-heart"></i> 生命: <span id="lives">7</span></div> 
+                <div class="score-item"><i class="fas fa-bullseye"></i> 目標: <span id="targetScore">777</span></div>
+                <div class="score-item"><i class="fas fa-clock"></i> 時間: <span id="timer">77</span></div>
+            </div>
+        </div>
+        
+        <div class="game-controls-buttons">
+            <button id="pauseBtn" class="game-control-btn" title="暫停遊戲 (P)"><i class="fas fa-pause"></i></button>
+            <button id="rulesBtn" class="game-control-btn" title="遊戲規則"><i class="fas fa-question"></i></button>
+        </div>
+
+        <div class="game-area">
+            <div class="player" id="player">
+                <img src="xiaobai-img/一般小白.png" alt="小白" id="playerImg">
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button class="control-btn" id="leftBtn">←</button>
+            <button class="control-btn" id="rightBtn">→</button>
+        </div>
+    </div>
+    
+    <div class="game-over" id="gameOver">
+        <div class="modal-content">
+            <h2 class="modal-title">遊戲結束</h2>
+            <p style="color: #fff; font-size: 1.2rem;">小白變成小白七了QAQ！</p>
+            <p style="color: #00ffff; font-size: 1rem; margin: 10px 0;">最終分數: <span id="finalScore">0</span></p>
+            <button class="modal-btn" onclick="restartGame()">重新開始</button>
+        </div>
+    </div>
+    
+    <div class="victory" id="victory">
+        <div class="modal-content">
+            <h2 class="modal-title">恭喜過關！</h2>
+            <p style="color: #ffd700; font-size: 1.2rem;">變成暴富小白了！</p>
+            <p style="color: #00ffff; font-size: 1rem; margin: 10px 0;">最終分數: <span id="victoryScore">0</span></p>
+            <button class="modal-btn" onclick="restartGame()">再玩一次</button>
+        </div>
+    </div>
+
+    <div class="pause-overlay" id="pauseOverlay">
+        <div class="modal-content">
+            <h2 class="modal-title" style="color: #00ffff;">遊戲暫停</h2>
+            <p style="color: #fff; font-size: 1.2rem;">休息一下，小白等您！</p>
+            <button class="modal-btn" onclick="game.togglePause()">繼續遊戲</button>
+            <button class="modal-btn orange" onclick="restartGame()">重新開始</button>
+            <button class="modal-btn purple" onclick="game.showRules(true)">遊戲規則</button>
+        </div>
+    </div>
+
+    <div class="rules-overlay" id="rulesOverlay">
+        <div class="modal-content">
+            <h2 class="modal-title">遊戲規則</h2>
+            <div class="rules-content" style="max-height: 50vh; overflow-y: auto; padding: 10px;">
+                <p>歡迎來到「小白不吃七遊戲系統」！幫助小白成為暴富小白，避開成為小白七的危險！</p>
+                <ul>
+                    <li><strong class="yellow-text">目標</strong>：在有限時間內達到 <strong id="rulesTargetScore">777 分</strong>！</li>
+                    <li><strong class="yellow-text">操作</strong>：使用 <strong>鍵盤方向鍵 (← →)</strong> 或 <strong>A/D 鍵</strong> 控制小白左右移動，避開和收集掉落的數字。手機或觸控板則使用下方按鈕。</li>
+                    <li><strong class="yellow-text">分數獲取</strong>：
+                        <ul>
+                            <li>收集<strong>非 7 的倍數</strong>數字 (例如：1, 2, 3, 4, 5, 6, 8...)，可獲得該數字的分數。此時會伴隨<strong class="pink-text">粉紅色</strong>爆炸特效。</li>
+                            <li>如果撿到 <strong class="yellow-text">「紅包」</strong>，恭喜您！直接獲得 <strong>100 分</strong>！道具顯示「紅包」字樣，伴隨<strong class="yellow-text">金色</strong>爆炸特效。</li>
+                            <li>如果撿到 <strong class="pink-text">「補血」</strong>道具，可恢復 <strong>1 點生命值</strong> (最多 <span id="rulesMaxLives">7</span> 點)！道具顯示「補血」字樣，伴隨<strong class="pink-text">粉紅色</strong>爆炸特效。</li>
+                            <li>如果撿到 <strong class="purple-text">「補秒」</strong>道具，可恢復 <strong>7 秒遊戲時間</strong> (最多 77 秒)！道具顯示「補秒」字樣，伴隨<strong class="purple-text">紫色</strong>爆炸特效。</li>
+                        </ul>
+                    </li>
+                    <li><strong class="red-text">危險警示</strong>：
+                        <ul>
+                            <li>千萬不能吃到 <strong>7 的倍數</strong>數字 (例如：7, 14, 21, 28...)！不然小白會變成小白七！</li>
+                            <li>每吃到一個 7 的倍數，會扣除 <strong>1 點生命值</strong>，並且會<strong class="green-text">扣除該數字的分數</strong>！同時伴隨<strong class="green-text">綠色</strong>爆炸特效。</li>
+                            <li>生命值歸零，遊戲就結束了。</li>
+                        </ul>
+                    </li>
+                    <li><strong class="yellow-text">難度提升</strong>：隨著分數增加，數字掉落速度會加快，出現頻率也會提高，考驗您的反應！</li>
+                    <li><strong class="yellow-text">時間限制</strong>：遊戲只有 <strong id="rulesGameTime">77 秒</strong>，時間結束前達到目標即可獲勝！</li>
+                    <li><strong class="yellow-text">提示</strong>：所有數字顏色都一樣，小白必須靠自己判斷哪些數字是 7 的倍數喔！</li>
+                </ul>
+                <p style="margin-top: 20px;">祝您遊戲愉快，並且祝福小白生日快樂！福如東海！壽比南山！</p>
+            </div>
+            <button class="modal-btn" onclick="game.startActualGame()" style="margin-top: 30px;">開始遊戲</button>
+        </div>
+    </div>
+    
+    <div class="copyright">Copyright © Liyuchiutiger Gongminshen</div>
+    
+    <div class="mascot" onclick="createMascotParticles()">
+        <svg width="60" height="60" viewBox="0 0 100 100">
+            <image href="image/LiyuChillGuy.svg" width="100" height="100"/>
+        </svg>
+    </div>
+
+    <script>
+        class Game {
+            constructor(showRulesAtBeginning = true) { 
+                this.score = 0;
+                this.lives = 7; 
+                this.maxLives = 7; 
+                this.targetScore = 777; 
+                this.initialGameTime = 77; 
+                this.gameTime = this.initialGameTime;
+                this.maxGameTime = 77; 
+                this.playerX = 50; 
+                this.gameRunning = false; 
+                this.isPaused = false; 
+                this.numbers = []; 
+                this.keys = {}; 
+                this.playerImageResetTimeout = null; 
+                
+                this.animationFrameId = null;
+                this.spawnTimeoutId = null;
+                this.timerIntervalId = null;
+
+                // Web Audio API Context
+                this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                
+                // 難度設定
+                this.baseFallSpeed = 3000; 
+                this.minFallSpeed = 800; 
+                this.baseSpawnDelay = 1000; 
+                this.minSpawnDelay = 150; 
+                this.difficultyFactor = 1; 
+                this.difficultyThreshold = 50; 
+                this.maxDifficultyFactor = 4; 
+                this.redEnvelopeChance = 0.02; 
+                this.bloodPackChance = 0.05; 
+                this.timeBoostChance = 0.04; 
+                this.sevenMultipleChance = 0.5; 
+                this.playerSpeedMultiplier = 1.25; 
+
+                this.init(showRulesAtBeginning);
+            }
+            
+            init(showRulesAtBeginning) {
+                this.createStars();
+                this.bindEvents();
+                this.updateUI(); 
+                document.getElementById('rulesTargetScore').textContent = this.targetScore;
+                document.getElementById('rulesGameTime').textContent = this.initialGameTime;
+                document.getElementById('rulesMaxLives').textContent = this.maxLives; 
+                document.getElementById('targetScore').textContent = this.targetScore;
+                document.getElementById('timer').textContent = this.initialGameTime; 
+
+                if (showRulesAtBeginning) {
+                    document.getElementById('rulesOverlay').style.display = 'flex'; 
+                } else {
+                    this.startActualGame();
+                }
+            }
+            
+            startActualGame() {
+                document.getElementById('rulesOverlay').style.display = 'none';
+                this.gameRunning = true; 
+                this.startTimer();
+                this.gameLoop();
+                this.spawnNumbers();
+            }
+
+            createStars() {
+                const starsContainer = document.querySelector('.stars');
+                starsContainer.innerHTML = ''; 
+                for (let i = 0; i < 100; i++) {
+                    const star = document.createElement('div');
+                    star.className = 'star';
+                    star.style.left = Math.random() * 100 + '%';
+                    star.style.top = Math.random() * 100 + '%';
+                    star.style.width = Math.random() * 3 + 1 + 'px';
+                    star.style.height = star.style.width;
+                    star.style.animationDelay = Math.random() * 2 + 's';
+                    starsContainer.appendChild(star);
+                }
+            }
+            
+            bindEvents() {
+                document.addEventListener('keydown', (e) => {
+                    this.keys[e.key] = true;
+                    if (e.key === 'p' || e.key === 'P') {
+                        this.togglePause();
+                    }
+                    if ((e.key === 'Enter' || e.key === ' ' || e.key === 'NumpadEnter') && 
+                        (document.getElementById('gameOver').style.display === 'flex' || 
+                         document.getElementById('victory').style.display === 'flex' ||
+                         document.getElementById('pauseOverlay').style.display === 'flex' ||
+                         document.getElementById('rulesOverlay').style.display === 'flex' )) {
+                        
+                        if (document.getElementById('gameOver').style.display === 'flex' || document.getElementById('victory').style.display === 'flex') {
+                            restartGame(); 
+                        } else if (document.getElementById('pauseOverlay').style.display === 'flex') {
+                            const continueBtn = document.querySelector('#pauseOverlay .modal-btn');
+                            if (continueBtn) continueBtn.click(); 
+                        } else if (document.getElementById('rulesOverlay').style.display === 'flex') {
+                            const startBtn = document.querySelector('#rulesOverlay .modal-btn');
+                            if (startBtn) startBtn.click(); 
+                        }
+                    }
+                });
+                document.addEventListener('keyup', (e) => {
+                    this.keys[e.key] = false;
+                });
+                
+                document.getElementById('leftBtn').addEventListener('touchstart', (e) => { e.preventDefault(); this.keys['ArrowLeft'] = true; });
+                document.getElementById('leftBtn').addEventListener('touchend', (e) => { e.preventDefault(); this.keys['ArrowLeft'] = false; });
+                document.getElementById('leftBtn').addEventListener('mousedown', () => { this.keys['ArrowLeft'] = true; });
+                document.getElementById('leftBtn').addEventListener('mouseup', () => { this.keys['ArrowLeft'] = false; });
+                
+                document.getElementById('rightBtn').addEventListener('touchstart', (e) => { e.preventDefault(); this.keys['ArrowRight'] = true; });
+                document.getElementById('rightBtn').addEventListener('touchend', (e) => { e.preventDefault(); this.keys['ArrowRight'] = false; });
+                document.getElementById('rightBtn').addEventListener('mousedown', () => { this.keys['ArrowRight'] = true; });
+                document.getElementById('rightBtn').addEventListener('mouseup', () => { this.keys['ArrowRight'] = false; });
+
+                document.getElementById('pauseBtn').addEventListener('click', () => this.togglePause());
+                document.getElementById('rulesBtn').addEventListener('click', () => this.showRules(true)); 
+            }
+
+            showRules(fromGame = false) {
+                if (fromGame) { 
+                    if (!this.isPaused && this.gameRunning) {
+                        this.togglePause(); 
+                    }
+                }
+                document.getElementById('rulesOverlay').style.display = 'flex';
+                const startBtn = document.querySelector('#rulesOverlay .modal-btn');
+                if (fromGame) {
+                    startBtn.textContent = '關閉';
+                    startBtn.onclick = () => {
+                        document.getElementById('rulesOverlay').style.display = 'none';
+                        if (fromGame && this.gameRunning) { 
+                             this.togglePause(); 
+                        }
+                    };
+                } else { 
+                    startBtn.textContent = '開始遊戲';
+                    startBtn.onclick = () => game.startActualGame();
+                }
+            }
+
+            startTimer() {
+                clearInterval(this.timerIntervalId); 
+                this.timerIntervalId = setInterval(() => {
+                    if (!this.isPaused && this.gameRunning) {
+                        this.gameTime--;
+                        this.updateUI();
+                        if (this.gameTime <= 0) {
+                            clearInterval(this.timerIntervalId);
+                            this.gameOver(); 
+                        }
+                    }
+                }, 1000);
+            }
+            
+            updatePlayer() {
+                const player = document.getElementById('player');
+                const playerWidthPx = player.offsetWidth; 
+                const viewportWidthPx = window.innerWidth;
+                const playerSpeedPx = (5 * this.playerSpeedMultiplier) * (viewportWidthPx / 1000); 
+
+                if (this.keys['ArrowLeft'] || this.keys['a'] || this.keys['A']) {
+                    this.playerX = Math.max((playerWidthPx / viewportWidthPx * 100) / 2, this.playerX - playerSpeedPx / viewportWidthPx * 100);
+                    this.playerDirection = -1;
+                    player.classList.add('flip');
+                } else if (this.keys['ArrowRight'] || this.keys['d'] || this.keys['D']) {
+                    this.playerX = Math.min(100 - (playerWidthPx / viewportWidthPx * 100) / 2, this.playerX + playerSpeedPx / viewportWidthPx * 100);
+                    this.playerDirection = 1;
+                    player.classList.remove('flip');
+                } else {
+                    this.playerDirection = 0;
+                }
+                
+                player.style.left = this.playerX + '%';
+            }
+
+            getFallingNumberProperties() {
+                let numberValue;
+                let isBad = false;
+                let isRedEnvelope = false;
+                let isBloodPack = false;
+                let isTimeBoost = false; 
+
+                const totalSpecialChance = this.bloodPackChance + this.redEnvelopeChance + this.timeBoostChance;
+                const randomVal = Math.random();
+
+                if (randomVal < this.bloodPackChance) {
+                    numberValue = '補血'; 
+                    isBloodPack = true;
+                } 
+                else if (randomVal < this.bloodPackChance + this.redEnvelopeChance) { 
+                    numberValue = '紅包'; 
+                    isRedEnvelope = true;
+                } 
+                else if (randomVal < totalSpecialChance) { 
+                    numberValue = '補秒'; 
+                    isTimeBoost = true;
+                }
+                else { 
+                    if (Math.random() < this.sevenMultipleChance) {
+                        numberValue = (Math.floor(Math.random() * 14) + 1) * 7; 
+                        isBad = true;
+                    } else {
+                        do {
+                            numberValue = Math.floor(Math.random() * 99) + 1;
+                        } while (numberValue % 7 === 0);
+                        isBad = false;
+                    }
+                }
+                
+                return { value: numberValue, isBad: isBad, isRedEnvelope: isRedEnvelope, isBloodPack: isBloodPack, isTimeBoost: isTimeBoost };
+            }
+            
+            spawnNumbers() {
+                if (!this.gameRunning) {
+                    clearTimeout(this.spawnTimeoutId); 
+                    return;
+                }
+                if (this.isPaused) {
+                    this.spawnTimeoutId = setTimeout(() => this.spawnNumbers(), 500); 
+                    return;
+                }
+                
+                const { value, isBad, isRedEnvelope, isBloodPack, isTimeBoost } = this.getFallingNumberProperties();
+                
+                const numberElement = document.createElement('div');
+                numberElement.className = `falling-number 
+                                          ${isRedEnvelope ? 'number-red-envelope' : ''} 
+                                          ${isBloodPack ? 'number-blood-pack' : ''}
+                                          ${isTimeBoost ? 'number-time-boost' : ''}`; 
+                
+                numberElement.textContent = value;
+                
+                numberElement.style.left = Math.random() * 90 + 5 + '%'; 
+                
+                const currentFallSpeed = Math.max(this.minFallSpeed, this.baseFallSpeed / this.difficultyFactor);
+                numberElement.style.animationDuration = (currentFallSpeed + (Math.random() * 1000 - 500)) + 'ms'; 
+                
+                numberElement.dataset.value = typeof value === 'string' ? value : value.toString();
+                numberElement.dataset.isBad = isBad;
+                numberElement.dataset.isRedEnvelope = isRedEnvelope;
+                numberElement.dataset.isBloodPack = isBloodPack;
+                numberElement.dataset.isTimeBoost = isTimeBoost; 
+                
+                document.querySelector('.game-area').appendChild(numberElement);
+                this.numbers.push(numberElement);
+                
+                setTimeout(() => {
+                    if (numberElement.parentNode) {
+                        numberElement.remove();
+                        this.numbers = this.numbers.filter(n => n !== numberElement);
+                    }
+                }, parseFloat(numberElement.style.animationDuration) + 100); 
+                
+                const currentSpawnDelay = Math.max(this.minSpawnDelay, this.baseSpawnDelay / this.difficultyFactor);
+                this.spawnTimeoutId = setTimeout(() => this.spawnNumbers(), currentSpawnDelay + (Math.random() * 500 - 250)); 
+            }
+            
+            checkCollisions() {
+                const player = document.getElementById('player');
+                const playerRect = player.getBoundingClientRect();
+                
+                this.numbers = this.numbers.filter(numberElement => {
+                    if (!numberElement.parentNode) return false; 
+
+                    const numberRect = numberElement.getBoundingClientRect();
+                    
+                    if (this.isColliding(playerRect, numberRect)) {
+                        const valueStr = numberElement.dataset.value;
+                        const isBad = numberElement.dataset.isBad === 'true';
+                        const isRedEnvelope = numberElement.dataset.isRedEnvelope === 'true';
+                        const isBloodPack = numberElement.dataset.isBloodPack === 'true';
+                        const isTimeBoost = numberElement.dataset.isTimeBoost === 'true'; 
+
+                        let actualValue;
+                        if (isRedEnvelope) {
+                            actualValue = 100; 
+                        } else if (isBloodPack || isTimeBoost) { 
+                            actualValue = 0; 
+                        }
+                        else {
+                            actualValue = parseInt(valueStr);
+                        }
+                        
+                        this.handleCollision(actualValue, isBad, numberElement, isRedEnvelope, isBloodPack, isTimeBoost); 
+                        
+                        numberElement.remove(); 
+                        return false; 
+                    }
+                    return true; 
+                });
+            }
+            
+            isColliding(rect1, rect2) {
+                const buffer = 0.2; 
+                return !(rect1.right - rect1.width * buffer < rect2.left || 
+                        rect1.left + rect1.width * buffer > rect2.right || 
+                        rect1.bottom - rect1.height * buffer < rect2.top || 
+                        rect1.top + rect1.height * buffer > rect2.bottom);
+            }
+            
+            handleCollision(value, isBad, element, isRedEnvelope = false, isBloodPack = false, isTimeBoost = false) { 
+                const playerImg = document.getElementById('playerImg');
+                
+                clearTimeout(this.playerImageResetTimeout); 
+
+                let explosionColor;
+                let screenFlashColor; 
+                let soundType;
+
+                if (isBad) { 
+                    this.lives--;
+                    this.score = Math.max(0, this.score - value); 
+                    this.playerState = 'seven';
+                    playerImg.src = 'xiaobai-img/小白七.png';
+                    explosionColor = '#00ff00'; 
+                    screenFlashColor = 'rgba(0,255,0,0.5)'; 
+                    soundType = 'bad';
+                    
+                    if (this.lives <= 0) {
+                        this.gameOver();
+                    }
+                } else { 
+                    
+                    if (isRedEnvelope) {
+                        this.score += value;
+                        explosionColor = '#ffd700'; 
+                        screenFlashColor = 'rgba(255,215,0,0.5)'; 
+                    } else if (isBloodPack) {
+                        this.lives = Math.min(this.maxLives, this.lives + 1); 
+                        explosionColor = '#ff69b4'; 
+                        screenFlashColor = 'rgba(255,105,180,0.5)'; 
+                    } else if (isTimeBoost) { 
+                        this.gameTime = Math.min(this.maxGameTime, this.gameTime + 7); 
+                        explosionColor = '#8a2be2'; 
+                        screenFlashColor = 'rgba(138,43,226,0.5)'; 
+                    }
+                    else { 
+                        this.score += value;
+                        explosionColor = '#ff69b4'; 
+                        screenFlashColor = 'rgba(255,105,180,0.5)'; 
+                    }
+                    
+                    this.playerState = 'happy';
+                    playerImg.src = 'xiaobai-img/呵呵小白.png';
+                    soundType = 'good';
+                }
+                
+                const particleCount = isRedEnvelope || isBloodPack || isTimeBoost ? 40 : 20;
+                const particleDistance = isRedEnvelope || isBloodPack || isTimeBoost ? 250 : 150;
+                this.createExplosion(element, explosionColor, particleCount, particleDistance); 
+                
+                if (soundType === 'good') {
+                    this.playGoodSound(); 
+                } else {
+                    this.playBadSound();
+                }
+                this.flashScreen(screenFlashColor); 
+
+                const oldDifficultyFactor = this.difficultyFactor;
+                this.difficultyFactor = Math.min(this.maxDifficultyFactor, 1 + Math.floor(this.score / this.difficultyThreshold) * 0.1);
+                if (this.difficultyFactor > oldDifficultyFactor) {
+                    console.log(`Difficulty increased! Current factor: ${this.difficultyFactor.toFixed(2)}. Score: ${this.score}`);
+                }
+                
+                if (this.score >= this.targetScore) { 
+                    this.victory();
+                }
+                
+                this.updateUI();
+
+                this.playerImageResetTimeout = setTimeout(() => {
+                    if (this.gameRunning && !this.isPaused) { 
+                        playerImg.src = 'xiaobai-img/一般小白.png';
+                        this.playerState = 'normal';
+                    }
+                }, 500); 
+            }
+            
+            createExplosion(element, color, particleCount = 12, distance = 100) {
+                const rect = element.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+                
+                for (let i = 0; i < particleCount; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'explosion-particle';
+                    particle.style.background = color;
+                    particle.style.left = centerX + 'px';
+                    particle.style.top = centerY + 'px';
+                    
+                    const angle = (i / particleCount) * Math.PI * 2 + (Math.random() - 0.5) * 0.5; 
+                    const randomDistance = distance + Math.random() * (distance / 2); 
+                    const dx = Math.cos(angle) * randomDistance;
+                    const dy = Math.sin(angle) * randomDistance;
+                    
+                    particle.style.setProperty('--dx', dx + 'px');
+                    particle.style.setProperty('--dy', dy + 'px');
+                    
+                    document.body.appendChild(particle);
+                    
+                    setTimeout(() => particle.remove(), 1000);
+                }
+            }
+            
+            flashScreen(color) {
+                const body = document.body;
+                body.style.boxShadow = `inset 0 0 80px ${color}`; 
+                setTimeout(() => {
+                    body.style.boxShadow = '';
+                }, 100); 
+            }
+
+            playGoodSound() {
+                const oscillator = this.audioContext.createOscillator();
+                const gainNode = this.audioContext.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(this.audioContext.destination);
+
+                oscillator.type = 'sine'; 
+                oscillator.frequency.setValueAtTime(440, this.audioContext.currentTime); 
+                gainNode.gain.setValueAtTime(0.5, this.audioContext.currentTime);
+
+                oscillator.frequency.exponentialRampToValueAtTime(880, this.audioContext.currentTime + 0.15); 
+                gainNode.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + 0.3); 
+
+                oscillator.start(this.audioContext.currentTime);
+                oscillator.stop(this.audioContext.currentTime + 0.3);
+            }
+
+            playBadSound() {
+                const oscillator = this.audioContext.createOscillator();
+                const gainNode = this.audioContext.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(this.audioContext.destination);
+
+                oscillator.type = 'sawtooth'; 
+                oscillator.frequency.setValueAtTime(220, this.audioContext.currentTime); 
+                gainNode.gain.setValueAtTime(0.7, this.audioContext.currentTime);
+
+                oscillator.frequency.exponentialRampToValueAtTime(110, this.audioContext.currentTime + 0.2); 
+                gainNode.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + 0.4); 
+
+                oscillator.start(this.audioContext.currentTime);
+                oscillator.stop(this.audioContext.currentTime + 0.4);
+            }
+
+            updateUI() {
+                document.getElementById('score').textContent = this.score;
+                document.getElementById('lives').textContent = this.lives;
+                document.getElementById('timer').textContent = this.gameTime;
+                document.getElementById('victoryScore').textContent = this.score; 
+            }
+
+            togglePause() {
+                if (!this.gameRunning && !this.isPaused) return; 
+
+                this.isPaused = !this.isPaused;
+                const pauseOverlay = document.getElementById('pauseOverlay');
+                const pauseBtnIcon = document.querySelector('#pauseBtn i'); 
+
+                if (this.isPaused) {
+                    pauseOverlay.style.display = 'flex';
+                    if (pauseBtnIcon) pauseBtnIcon.className = 'fas fa-play'; 
+                    cancelAnimationFrame(this.animationFrameId); 
+                    clearTimeout(this.spawnTimeoutId); 
+                    clearInterval(this.timerIntervalId); 
+                    if (this.playerImageResetTimeout) { 
+                        clearTimeout(this.playerImageResetTimeout);
+                    }
+                } else {
+                    pauseOverlay.style.display = 'none';
+                    if (pauseBtnIcon) pauseBtnIcon.className = 'fas fa-pause'; 
+                    this.gameLoop(); 
+                    this.spawnNumbers(); 
+                    this.startTimer(); 
+                    if (this.playerState !== 'normal') {
+                        this.playerImageResetTimeout = setTimeout(() => {
+                            if (this.gameRunning && !this.isPaused) { 
+                                document.getElementById('playerImg').src = 'xiaobai-img/一般小白.png';
+                                this.playerState = 'normal';
+                            }
+                        }, 500); 
+                    }
+                }
+            }
+            
+            endGameCleanup() {
+                this.gameRunning = false;
+                this.isPaused = false; 
+                cancelAnimationFrame(this.animationFrameId);
+                clearTimeout(this.spawnTimeoutId);
+                clearInterval(this.timerIntervalId);
+                clearTimeout(this.playerImageResetTimeout);
+
+                document.querySelectorAll('.falling-number').forEach(el => el.remove());
+                this.numbers = []; 
+            }
+
+            gameOver() {
+                this.endGameCleanup();
+                document.getElementById('finalScore').textContent = this.score;
+                document.getElementById('gameOver').style.display = 'flex';
+            }
+            
+            victory() {
+                this.endGameCleanup();
+                const playerImg = document.getElementById('playerImg');
+                playerImg.src = 'xiaobai-img/暴富小白.png';
+                document.getElementById('victoryScore').textContent = this.score;
+                document.getElementById('victory').style.display = 'flex';
+                this.createVictoryEffect();
+            }
+            
+            createVictoryEffect() {
+                for (let i = 0; i < 50; i++) {
+                    setTimeout(() => {
+                        this.createRandomParticle('#ffd700');
+                    }, i * 100);
+                }
+            }
+            
+            createRandomParticle(color) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.background = color;
+                particle.style.left = Math.random() * window.innerWidth + 'px';
+                particle.style.top = Math.random() * window.innerHeight + 'px';
+                particle.style.animation = 'explode 2s ease-out forwards';
+                
+                const dx = (Math.random() - 0.5) * 300; 
+                const dy = (Math.random() - 0.5) * 300;
+                particle.style.setProperty('--dx', dx + 'px');
+                particle.style.setProperty('--dy', dy + 'px');
+                
+                document.body.appendChild(particle);
+                setTimeout(() => particle.remove(), 2000);
+            }
+            
+            gameLoop() {
+                if (!this.gameRunning) {
+                    cancelAnimationFrame(this.animationFrameId); 
+                    return;
+                }
+                if (!this.isPaused) { 
+                    this.updatePlayer();
+                    this.checkCollisions();
+                }
+                this.animationFrameId = requestAnimationFrame(() => this.gameLoop());
+            }
+        }
+        
+        function createMascotParticles() {
+            const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'];
+            
+            for (let i = 0; i < 20; i++) {
+                setTimeout(() => {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+                    particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+                    particle.style.left = Math.random() * window.innerWidth + 'px'; 
+                    particle.style.top = Math.random() * window.innerHeight + 'px'; 
+                    
+                    particle.style.animation = 'explode 1.5s ease-out forwards';
+                    
+                    const angle = (Math.random() * Math.PI * 2);
+                    const distance = 150 + Math.random() * 100; 
+                    const dx = Math.cos(angle) * distance;
+                    const dy = Math.sin(angle) * distance;
+                    
+                    particle.style.setProperty('--dx', dx + 'px');
+                    particle.style.setProperty('--dy', dy + 'px');
+                    
+                    document.body.appendChild(particle);
+                    setTimeout(() => particle.remove(), 1500);
+                }, i * 50);
+            }
+        }
+        
+        function restartGame() {
+            document.getElementById('gameOver').style.display = 'none';
+            document.getElementById('victory').style.display = 'none';
+            document.getElementById('pauseOverlay').style.display = 'none'; 
+            document.getElementById('rulesOverlay').style.display = 'none'; 
+
+            document.querySelectorAll('.falling-number').forEach(el => el.remove());
+            document.querySelectorAll('.particle').forEach(el => el.remove());
+            document.querySelectorAll('.explosion-particle').forEach(el => el.remove());
+
+            if (window.game) {
+                window.game.endGameCleanup(); 
+            }
+            
+            // 重新開始遊戲 (傳入 false 讓它直接開始，不顯示規則)
+            window.game = new Game(false);
+            document.getElementById('playerImg').src = 'xiaobai-img/一般小白.png'; 
+            const pauseBtnIcon = document.querySelector('#pauseBtn i');
+            if (pauseBtnIcon) pauseBtnIcon.className = 'fas fa-pause'; 
+            document.body.style.boxShadow = ''; 
+        }
+        
+        // 初始化遊戲 (傳入 true 讓它第一次載入時顯示規則)
+        window.game = new Game(true);
+    </script>
+</body>
+</html>
