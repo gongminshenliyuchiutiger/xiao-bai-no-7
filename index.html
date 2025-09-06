@@ -171,30 +171,38 @@
             /* header 現在有3行內容，高度會增加 */
             height: calc(100vh - 200px); /* 保持這個，因為 header 的實際高度會動態調整 */
             overflow: hidden;
+            /* 添加 touch-action 以確保在觸控拖曳時不會觸發瀏覽器默認行為，例如滾動 */
+            touch-action: none; 
         }
         
         .player {
             position: absolute;
-            bottom: 50px;
+            bottom: 0; /* 讓小白貼在頁面最下方 */
             left: 50%;
-            transform: translateX(-50%);
+            transform: translateX(-50%); /* 保持居中變換 */
             width: 192px; /* 角色寬度增加 120% (160 * 1.2) */
             height: 192px; /* 角色高度增加 120% */
             transition: all 0.1s ease;
             z-index: 10;
             filter: drop-shadow(0 0 10px rgba(255,255,255,0.8));
+            /* 讓小白可以被觸控，不會被其父元素的 touch-action: none 影響 */
+            touch-action: pan-x; 
         }
         
         .player img {
             width: 100%;
             height: 100%;
             object-fit: contain;
-            transition: transform 0.3s ease;
+            /* 移除 transform 過渡效果，因為不再需要翻轉 */
+            /* transition: transform 0.3s ease; */
         }
         
+        /* 移除 flip class 的樣式 */
+        /*
         .player.flip img {
             transform: scaleX(-1);
         }
+        */
         
         .falling-number {
             position: absolute;
@@ -418,6 +426,8 @@
             transform: scale(1.2);
         }
         
+        /* 移除 .controls 及其相關 .control-btn 樣式 */
+        /*
         .controls {
             position: fixed;
             bottom: 80px;
@@ -439,21 +449,25 @@
             font-weight: 900;
             cursor: pointer;
             transition: all 0.3s ease;
-            display: none; /* 預設隱藏，僅在小螢幕顯示 */
+            display: none; // 預設隱藏，僅在小螢幕顯示
         }
         
         .control-btn:active {
             background: rgba(0,255,255,0.6);
             transform: scale(0.9);
         }
+        */
         
         /* 響應式調整 */
         @media (max-width: 768px) {
+            /* 移除 .control-btn 的顯示規則 */
+            /*
             .control-btn {
                 display: flex;
                 align-items: center;
                 justify-content: center;
             }
+            */
             
             .player {
                 width: 144px; /* 行動裝置下角色放大 120% (120 * 1.2) */
@@ -476,7 +490,7 @@
             }
 
             .game-area {
-                height: calc(100vh - 250px); /* 調整遊戲區域高度 */
+                height: calc(100vh - 200px); /* 統一遊戲區域高度，提供更多空間 */
             }
 
             .modal-content {
@@ -593,10 +607,13 @@
             </div>
         </div>
         
+        <!-- 移除手機觸控按鈕，改為直接拖曳小白移動 -->
+        <!--
         <div class="controls">
             <button class="control-btn" id="leftBtn">←</button>
             <button class="control-btn" id="rightBtn">→</button>
         </div>
+        -->
     </div>
     
     <div class="game-over" id="gameOver">
@@ -634,7 +651,7 @@
                 <p>歡迎來到「小白不吃七遊戲系統」！幫助小白成為暴富小白，避開成為小白七的危險！</p>
                 <ul>
                     <li><strong class="yellow-text">目標</strong>：在有限時間內達到 <strong id="rulesTargetScore">777 分</strong>！</li>
-                    <li><strong class="yellow-text">操作</strong>：使用 <strong>鍵盤方向鍵 (← →)</strong> 或 <strong>A/D 鍵</strong> 控制小白左右移動，避開和收集掉落的數字。手機或觸控板則使用下方按鈕。</li>
+                    <li><strong class="yellow-text">操作</strong>：使用 <strong>鍵盤方向鍵 (← →)</strong> 或 <strong>A/D 鍵</strong> 控制小白左右移動。手機或觸控板則<strong>直接拖曳小白</strong>即可左右移動。</li>
                     <li><strong class="yellow-text">分數獲取</strong>：
                         <ul>
                             <li>收集<strong>非 7 的倍數</strong>數字 (例如：1, 2, 3, 4, 5, 6, 8...)，可獲得該數字的分數。此時會伴隨<strong class="pink-text">粉紅色</strong>爆炸特效。</li>
@@ -701,10 +718,16 @@
                 this.difficultyThreshold = 50; 
                 this.maxDifficultyFactor = 4; 
                 this.redEnvelopeChance = 0.02; 
-                this.bloodPackChance = 0.05; 
+                this.bloodPackChance = 0.05; // 補血機率
                 this.timeBoostChance = 0.04; 
                 this.sevenMultipleChance = 0.5; 
-                this.playerSpeedMultiplier = 2.5; // 提高小白的移動速度
+                this.playerSpeedMultiplier = 5; // 提高小白的移動速度 (從 2.5 提高到 5)
+
+                // 觸控拖曳相關變數
+                this.isTouching = false;
+                this.lastTouchX = 0;
+                this.playerElement = document.getElementById('player'); // 在 constructor 中設置
+                this.gameAreaElement = document.querySelector('.game-area'); // 獲取遊戲區域元素
 
                 this.init(showRulesAtBeginning);
             }
@@ -716,7 +739,6 @@
                 document.getElementById('rulesTargetScore').textContent = this.targetScore;
                 document.getElementById('rulesGameTime').textContent = this.initialGameTime;
                 document.getElementById('rulesMaxLives').textContent = this.maxLives; 
-                // document.getElementById('targetScore').textContent = this.targetScore; // 移除此行，因為目標已不再顯示在計分板
                 document.getElementById('timer').textContent = this.initialGameTime; 
 
                 if (showRulesAtBeginning) {
@@ -776,16 +798,44 @@
                     this.keys[e.key] = false;
                 });
                 
-                document.getElementById('leftBtn').addEventListener('touchstart', (e) => { e.preventDefault(); this.keys['ArrowLeft'] = true; });
-                document.getElementById('leftBtn').addEventListener('touchend', (e) => { e.preventDefault(); this.keys['ArrowLeft'] = false; });
-                document.getElementById('leftBtn').addEventListener('mousedown', () => { this.keys['ArrowLeft'] = true; });
-                document.getElementById('leftBtn').addEventListener('mouseup', () => { this.keys['ArrowLeft'] = false; });
-                
-                document.getElementById('rightBtn').addEventListener('touchstart', (e) => { e.preventDefault(); this.keys['ArrowRight'] = true; });
-                document.getElementById('rightBtn').addEventListener('touchend', (e) => { e.preventDefault(); this.keys['ArrowRight'] = false; });
-                document.getElementById('rightBtn').addEventListener('mousedown', () => { this.keys['ArrowRight'] = true; });
-                document.getElementById('rightBtn').addEventListener('mouseup', () => { this.keys['ArrowRight'] = false; });
+                // 添加小白的觸控拖曳事件監聽
+                this.playerElement.addEventListener('touchstart', (e) => {
+                    e.preventDefault(); // 防止瀏覽器默認滾動行為
+                    if (e.touches.length === 1) {
+                        this.isTouching = true;
+                        this.lastTouchX = e.touches[0].clientX;
+                    }
+                });
 
+                this.playerElement.addEventListener('touchmove', (e) => {
+                    e.preventDefault(); // 防止瀏覽器默認滾動行為
+                    if (this.isTouching && e.touches.length === 1) {
+                        const currentTouchX = e.touches[0].clientX;
+                        const deltaX = currentTouchX - this.lastTouchX;
+
+                        const playerWidthPx = this.playerElement.offsetWidth;
+                        const viewportWidthPx = window.innerWidth;
+                        const playerWidthPercentage = (playerWidthPx / viewportWidthPx) * 100;
+
+                        // 更新 playerX，並轉換像素 delta 到百分比
+                        this.playerX += (deltaX / viewportWidthPx) * 100;
+
+                        // 邊界檢查
+                        const minX = playerWidthPercentage / 2;
+                        const maxX = 100 - (playerWidthPercentage / 2);
+                        this.playerX = Math.max(minX, Math.min(maxX, this.playerX));
+
+                        this.lastTouchX = currentTouchX; // 更新 lastTouchX 以便下次計算
+
+                        // 移除根據移動方向翻轉小白圖片的代碼
+                    }
+                });
+
+                this.playerElement.addEventListener('touchend', () => {
+                    this.isTouching = false;
+                    this.playerDirection = 0;
+                });
+                
                 document.getElementById('pauseBtn').addEventListener('click', () => this.togglePause());
                 document.getElementById('rulesBtn').addEventListener('click', () => this.showRules(true)); 
             }
@@ -827,21 +877,25 @@
             }
             
             updatePlayer() {
-                const player = document.getElementById('player');
+                const player = this.playerElement; // 使用已存儲的 playerElement
                 const playerWidthPx = player.offsetWidth; 
                 const viewportWidthPx = window.innerWidth;
-                const playerSpeedPx = (5 * this.playerSpeedMultiplier) * (viewportWidthPx / 1000); 
+                
+                // 只有在沒有觸控拖曳時才處理鍵盤輸入
+                if (!this.isTouching) { 
+                    const playerSpeedPx = (5 * this.playerSpeedMultiplier) * (viewportWidthPx / 1000); 
 
-                if (this.keys['ArrowLeft'] || this.keys['a'] || this.keys['A']) {
-                    this.playerX = Math.max((playerWidthPx / viewportWidthPx * 100) / 2, this.playerX - playerSpeedPx / viewportWidthPx * 100);
-                    this.playerDirection = -1;
-                    player.classList.add('flip');
-                } else if (this.keys['ArrowRight'] || this.keys['d'] || this.keys['D']) {
-                    this.playerX = Math.min(100 - (playerWidthPx / viewportWidthPx * 100) / 2, this.playerX + playerSpeedPx / viewportWidthPx * 100);
-                    this.playerDirection = 1;
-                    player.classList.remove('flip');
-                } else {
-                    this.playerDirection = 0;
+                    if (this.keys['ArrowLeft'] || this.keys['a'] || this.keys['A']) {
+                        this.playerX = Math.max((playerWidthPx / viewportWidthPx * 100) / 2, this.playerX - playerSpeedPx / viewportWidthPx * 100);
+                        this.playerDirection = -1;
+                        // 移除翻轉代碼
+                    } else if (this.keys['ArrowRight'] || this.keys['d'] || this.keys['D']) {
+                        this.playerX = Math.min(100 - (playerWidthPx / viewportWidthPx * 100) / 2, this.playerX + playerSpeedPx / viewportWidthPx * 100);
+                        this.playerDirection = 1;
+                        // 移除翻轉代碼
+                    } else {
+                        this.playerDirection = 0;
+                    }
                 }
                 
                 player.style.left = this.playerX + '%';
@@ -916,7 +970,17 @@
                 numberElement.innerHTML = displayContent; // 使用 innerHTML 插入圖示或文字
                 // --- 修改結束 ---
                 
-                numberElement.style.left = Math.random() * 90 + 5 + '%'; 
+                // 將元素添加到 DOM 以便獲取其寬度
+                this.gameAreaElement.appendChild(numberElement); // 使用已獲取到的 gameAreaElement
+
+                // 確保物件不會超出左右邊界
+                const numberWidthPx = numberElement.offsetWidth;
+                const gameAreaWidthPx = this.gameAreaElement.offsetWidth;
+                
+                // 計算最大可用的左邊位置 (以像素為單位)
+                const maxLeftPx = Math.max(0, gameAreaWidthPx - numberWidthPx); 
+                const randomLeftPx = Math.random() * maxLeftPx;
+                numberElement.style.left = randomLeftPx + 'px';
                 
                 const currentFallSpeed = Math.max(this.minFallSpeed, this.baseFallSpeed / this.difficultyFactor);
                 numberElement.style.animationDuration = (currentFallSpeed + (Math.random() * 1000 - 500)) + 'ms'; 
@@ -927,23 +991,20 @@
                 numberElement.dataset.isBloodPack = isBloodPack;
                 numberElement.dataset.isTimeBoost = isTimeBoost; 
                 
-                document.querySelector('.game-area').appendChild(numberElement);
                 this.numbers.push(numberElement);
                 
-                setTimeout(() => {
-                    if (numberElement.parentNode) {
-                        numberElement.remove();
-                        this.numbers = this.numbers.filter(n => n !== numberElement);
-                    }
-                }, parseFloat(numberElement.style.animationDuration) + 100); 
+                // 使用 animationend 事件來更精確地移除物件
+                numberElement.addEventListener('animationend', () => {
+                    if (numberElement.parentNode) numberElement.remove();
+                    this.numbers = this.numbers.filter(n => n !== numberElement);
+                }, { once: true });
                 
                 const currentSpawnDelay = Math.max(this.minSpawnDelay, this.baseSpawnDelay / this.difficultyFactor);
                 this.spawnTimeoutId = setTimeout(() => this.spawnNumbers(), currentSpawnDelay + (Math.random() * 500 - 250)); 
             }
             
             checkCollisions() {
-                const player = document.getElementById('player');
-                const playerRect = player.getBoundingClientRect();
+                const playerRect = this.playerElement.getBoundingClientRect();
                 
                 this.numbers = this.numbers.filter(numberElement => {
                     if (!numberElement.parentNode) return false; 
@@ -1211,8 +1272,9 @@
                 const particle = document.createElement('div');
                 particle.className = 'particle';
                 particle.style.background = color;
-                particle.style.left = Math.random() * window.innerWidth + 'px';
-                particle.style.top = Math.random() * window.innerHeight + 'px';
+                particle.style.left = Math.random() * window.innerWidth + 'px'; 
+                particle.style.top = Math.random() * window.innerHeight + 'px'; 
+                
                 particle.style.animation = 'explode 2s ease-out forwards';
                 
                 const dx = (Math.random() - 0.5) * 300; 
