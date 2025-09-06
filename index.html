@@ -1,3 +1,5 @@
+--- START OF FILE index.html ---
+
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -52,6 +54,32 @@
         @keyframes twinkle {
             0%, 100% { opacity: 0.3; transform: scale(1); }
             50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        /* 遊戲中暴富小白背景圖樣式 */
+        .rich-xiaobai-ghost {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('xiaobai-img/暴富小白.png');
+            background-size: cover; /* 確保圖片覆蓋滿版 */
+            background-repeat: no-repeat;
+            background-position: center center;
+            opacity: 0.08; /* 降低透明度，使其更淡化 */
+            pointer-events: none; /* 不阻擋鼠標事件 */
+            z-index: 1.5; /* 介於星星背景(1)和遊戲容器(2)之間 */
+            display: none; /* 預設隱藏，遊戲開始時顯示 */
+            animation: driftBackground 30s ease-in-out infinite alternate; /* 漂移動畫 */
+        }
+
+        @keyframes driftBackground {
+            0% { background-position: 50% 50%; }
+            25% { background-position: 55% 45%; }
+            50% { background-position: 45% 55%; }
+            75% { background-position: 52% 48%; }
+            100% { background-position: 50% 50%; }
         }
         
         .game-container {
@@ -389,6 +417,15 @@
         .rules-content .yellow-text {
             color: #ffd700;
         }
+
+        /* 勝利模態框內的圖片樣式 */
+        .victory .modal-content img {
+            max-width: 80%;
+            max-height: 250px; /* 控制圖片大小 */
+            margin-top: 20px;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 0 20px #ffd700); /* 勝利光暈效果 */
+        }
         
         .copyright {
             position: fixed;
@@ -426,52 +463,13 @@
             transform: scale(1.2);
         }
         
-        /* 移除 .controls 及其相關 .control-btn 樣式 */
-        /*
-        .controls {
-            position: fixed;
-            bottom: 80px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 20px;
-            z-index: 20;
-        }
-        
-        .control-btn {
-            width: 80px; 
-            height: 80px;
-            background: rgba(0,255,255,0.3);
-            border: 2px solid #00ffff;
-            border-radius: 50%;
-            color: #00ffff;
-            font-size: 2rem; 
-            font-weight: 900;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: none; // 預設隱藏，僅在小螢幕顯示
-        }
-        
-        .control-btn:active {
-            background: rgba(0,255,255,0.6);
-            transform: scale(0.9);
-        }
-        */
-        
         /* 響應式調整 */
         @media (max-width: 768px) {
-            /* 移除 .control-btn 的顯示規則 */
-            /*
-            .control-btn {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-            */
             
             .player {
                 width: 144px; /* 行動裝置下角色放大 120% (120 * 1.2) */
                 height: 144px;
+                bottom: 0; /* 確保手機版也貼底 */
             }
             
             .falling-number {
@@ -585,6 +583,9 @@
 <body>
     <div class="stars"></div>
     
+    <!-- 遊戲中淡化漂移的暴富小白背景圖 -->
+    <div id="richXiaobaiGhost" class="rich-xiaobai-ghost"></div>
+
     <div class="game-container">
         <div class="game-header">
             <h1 class="game-title">小白不吃七遊戲系統</h1>
@@ -629,6 +630,8 @@
         <div class="modal-content">
             <h2 class="modal-title">恭喜過關！</h2>
             <p style="color: #ffd700; font-size: 1.2rem;">變成暴富小白了！</p>
+            <!-- 勝利時顯示的暴富小白圖片 -->
+            <img src="xiaobai-img/暴富小白.png" alt="暴富小白" id="victoryXiaobaiImg"> 
             <p style="color: #00ffff; font-size: 1rem; margin: 10px 0;">最終分數: <span id="victoryScore">0</span></p>
             <button class="modal-btn" onclick="restartGame()">再玩一次</button>
         </div>
@@ -718,16 +721,18 @@
                 this.difficultyThreshold = 50; 
                 this.maxDifficultyFactor = 4; 
                 this.redEnvelopeChance = 0.02; 
-                this.bloodPackChance = 0.05; // 補血機率
+                this.bloodPackChance = 0.05; 
                 this.timeBoostChance = 0.04; 
                 this.sevenMultipleChance = 0.5; 
-                this.playerSpeedMultiplier = 5; // 提高小白的移動速度 (從 2.5 提高到 5)
+                this.playerSpeedMultiplier = 5; 
 
                 // 觸控拖曳相關變數
                 this.isTouching = false;
                 this.lastTouchX = 0;
-                this.playerElement = document.getElementById('player'); // 在 constructor 中設置
-                this.gameAreaElement = document.querySelector('.game-area'); // 獲取遊戲區域元素
+                this.playerElement = document.getElementById('player'); 
+                this.gameAreaElement = document.querySelector('.game-area'); 
+                this.richXiaobaiGhostElement = document.getElementById('richXiaobaiGhost'); // 獲取遊戲中背景鬼影元素
+                this.victoryXiaobaiImgElement = document.getElementById('victoryXiaobaiImg'); // 獲取勝利模態框中的圖片元素
 
                 this.init(showRulesAtBeginning);
             }
@@ -754,6 +759,10 @@
                 this.startTimer();
                 this.gameLoop();
                 this.spawnNumbers();
+                // 遊戲開始時顯示暴富小白鬼影
+                if (this.richXiaobaiGhostElement) {
+                    this.richXiaobaiGhostElement.style.display = 'block';
+                }
             }
 
             createStars() {
@@ -826,8 +835,6 @@
                         this.playerX = Math.max(minX, Math.min(maxX, this.playerX));
 
                         this.lastTouchX = currentTouchX; // 更新 lastTouchX 以便下次計算
-
-                        // 移除根據移動方向翻轉小白圖片的代碼
                     }
                 });
 
@@ -860,6 +867,10 @@
                     startBtn.textContent = '開始遊戲';
                     startBtn.onclick = () => game.startActualGame();
                 }
+                // 顯示規則時隱藏暴富小白鬼影
+                if (this.richXiaobaiGhostElement) {
+                    this.richXiaobaiGhostElement.style.display = 'none';
+                }
             }
 
             startTimer() {
@@ -877,7 +888,7 @@
             }
             
             updatePlayer() {
-                const player = this.playerElement; // 使用已存儲的 playerElement
+                const player = this.playerElement; 
                 const playerWidthPx = player.offsetWidth; 
                 const viewportWidthPx = window.innerWidth;
                 
@@ -888,11 +899,9 @@
                     if (this.keys['ArrowLeft'] || this.keys['a'] || this.keys['A']) {
                         this.playerX = Math.max((playerWidthPx / viewportWidthPx * 100) / 2, this.playerX - playerSpeedPx / viewportWidthPx * 100);
                         this.playerDirection = -1;
-                        // 移除翻轉代碼
                     } else if (this.keys['ArrowRight'] || this.keys['d'] || this.keys['D']) {
                         this.playerX = Math.min(100 - (playerWidthPx / viewportWidthPx * 100) / 2, this.playerX + playerSpeedPx / viewportWidthPx * 100);
                         this.playerDirection = 1;
-                        // 移除翻轉代碼
                     } else {
                         this.playerDirection = 0;
                     }
@@ -956,10 +965,9 @@
                                           ${isBloodPack ? 'number-blood-pack' : ''}
                                           ${isTimeBoost ? 'number-time-boost' : ''}`; 
                 
-                // --- 修改開始: 使用 Font Awesome 圖示替換文字 ---
                 let displayContent;
                 if (isRedEnvelope) {
-                    displayContent = '<i class="fas fa-money-bill-wave"></i>'; // 更換為波浪鈔票圖示
+                    displayContent = '<i class="fas fa-money-bill-wave"></i>'; 
                 } else if (isBloodPack) {
                     displayContent = '<i class="fas fa-heart"></i>'; 
                 } else if (isTimeBoost) {
@@ -967,13 +975,10 @@
                 } else {
                     displayContent = value.toString(); 
                 }
-                numberElement.innerHTML = displayContent; // 使用 innerHTML 插入圖示或文字
-                // --- 修改結束 ---
+                numberElement.innerHTML = displayContent; 
                 
-                // 將元素添加到 DOM 以便獲取其寬度
-                this.gameAreaElement.appendChild(numberElement); // 使用已獲取到的 gameAreaElement
+                this.gameAreaElement.appendChild(numberElement); 
 
-                // 確保物件不會超出左右邊界
                 const numberWidthPx = numberElement.offsetWidth;
                 const gameAreaWidthPx = this.gameAreaElement.offsetWidth;
                 
@@ -1216,6 +1221,10 @@
                     if (this.playerImageResetTimeout) { 
                         clearTimeout(this.playerImageResetTimeout);
                     }
+                    // 暫停時隱藏暴富小白鬼影
+                    if (this.richXiaobaiGhostElement) {
+                        this.richXiaobaiGhostElement.style.display = 'none';
+                    }
                 } else {
                     pauseOverlay.style.display = 'none';
                     if (pauseBtnIcon) pauseBtnIcon.className = 'fas fa-pause'; 
@@ -1230,6 +1239,10 @@
                             }
                         }, 500); 
                     }
+                    // 恢復時顯示暴富小白鬼影
+                    if (this.richXiaobaiGhostElement) {
+                        this.richXiaobaiGhostElement.style.display = 'block';
+                    }
                 }
             }
             
@@ -1243,6 +1256,10 @@
 
                 document.querySelectorAll('.falling-number').forEach(el => el.remove());
                 this.numbers = []; 
+                // 遊戲結束時隱藏暴富小白鬼影
+                if (this.richXiaobaiGhostElement) {
+                    this.richXiaobaiGhostElement.style.display = 'none';
+                }
             }
 
             gameOver() {
@@ -1254,9 +1271,14 @@
             victory() {
                 this.endGameCleanup();
                 const playerImg = document.getElementById('playerImg');
-                playerImg.src = 'xiaobai-img/暴富小白.png';
+                playerImg.src = 'xiaobai-img/暴富小白.png'; // 玩家角色切換成暴富小白
                 document.getElementById('victoryScore').textContent = this.score;
                 document.getElementById('victory').style.display = 'flex';
+                // 顯示勝利模態框中的暴富小白圖片
+                if (this.victoryXiaobaiImgElement) { 
+                    this.victoryXiaobaiImgElement.src = 'xiaobai-img/暴富小白.png';
+                    this.victoryXiaobaiImgElement.style.display = 'block'; 
+                }
                 this.createVictoryEffect();
             }
             
@@ -1353,3 +1375,4 @@
     </script>
 </body>
 </html>
+--- END OF FILE index.html ---
