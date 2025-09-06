@@ -61,16 +61,23 @@
             z-index: 2;
         }
         
+        /* 使用 Grid 佈局來控制 header 內容排列 */
         .game-header {
-            text-align: center;
             padding: 20px;
             background: linear-gradient(90deg, rgba(0,255,255,0.2), rgba(255,0,255,0.2));
             border-bottom: 2px solid #00ffff;
             box-shadow: 0 0 20px rgba(0,255,255,0.5);
-            display: flex; 
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            display: grid; /* 啟用 Grid 佈局 */
+            gap: 10px; /* 統一網格項目間距 */
+            align-items: center; /* 垂直置中網格項目 */
+            
+            /* 電腦版佈局 */
+            grid-template-areas:
+                "title"
+                "buttons"
+                "scoreboard";
+            grid-template-columns: 1fr; /* 整個 header 只有一列 */
+            grid-template-rows: auto auto auto; /* 標題, 按鈕, 計分板各自佔一行 */
         }
         
         .game-title {
@@ -79,8 +86,11 @@
             font-weight: 900;
             color: #00ffff;
             text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 30px #00ffff;
-            margin-bottom: 10px;
             animation: glow 2s ease-in-out infinite alternate;
+            
+            grid-area: title; /* 標題放在 title 區域 */
+            text-align: center; /* 標題文字置中 */
+            margin-bottom: 0; /* 移除舊的 margin-bottom, 由 grid gap 控制 */
         }
         
         @keyframes glow {
@@ -91,9 +101,11 @@
         .score-board {
             display: flex;
             justify-content: center; 
-            flex-wrap: wrap;
+            flex-wrap: wrap; /* 允許項目換行 (電腦版可彈性) */
             gap: 10px;
-            margin-top: 10px;
+            
+            grid-area: scoreboard; /* 計分板放在 scoreboard 區域 */
+            margin-top: 0; /* 移除舊的 margin-top, 由 grid gap 控制 */
         }
         
         .score-item {
@@ -117,14 +129,19 @@
         }
 
 
-        /* 獨立的遊戲控制按鈕 */
+        /* 遊戲控制按鈕，現在由 Grid 佈局控制 */
         .game-controls-buttons {
-            position: absolute;
-            top: 20px;
-            right: 20px;
+            grid-area: buttons; /* 按鈕放在 buttons 區域 (標題正下方) */
             display: flex;
             gap: 10px;
-            z-index: 30; /* 確保在最上層 */
+            z-index: 30;
+            justify-content: center; /* 按鈕水平置中 */
+            align-items: center; /* 垂直置中 */
+            
+            position: static; /* 移除絕對定位，交由 Grid 處理 */
+            top: unset;
+            right: unset;
+            transform: unset;
         }
 
         .game-control-btn {
@@ -151,7 +168,8 @@
         
         .game-area {
             position: relative;
-            height: calc(100vh - 200px); 
+            /* header 現在有3行內容，高度會增加 */
+            height: calc(100vh - 200px); /* 保持這個，因為 header 的實際高度會動態調整 */
             overflow: hidden;
         }
         
@@ -196,6 +214,11 @@
             background: linear-gradient(45deg, #00bfff, #9933ff); 
             color: #fff;
             box-shadow: 0 0 15px rgba(100,200,255,0.7);
+        }
+
+        .falling-number i.fas { /* 針對掉落數字中的 Font Awesome 圖示 */
+            font-size: 1.5rem; /* 確保圖示大小適中 */
+            margin-right: 0; /* 移除可能存在的預設間距 */
         }
 
         .number-red-envelope {
@@ -424,6 +447,7 @@
             transform: scale(0.9);
         }
         
+        /* 響應式調整 */
         @media (max-width: 768px) {
             .control-btn {
                 display: flex;
@@ -441,6 +465,9 @@
                 min-width: 50px;
                 min-height: 50px;
             }
+            .falling-number i.fas {
+                font-size: 1.2rem; /* 手機上圖示也稍微縮小 */
+            }
 
             .number-red-envelope, .number-blood-pack, .number-time-boost {
                 font-size: 1.8rem;
@@ -449,7 +476,7 @@
             }
 
             .game-area {
-                height: calc(100vh - 250px); 
+                height: calc(100vh - 250px); /* 調整遊戲區域高度 */
             }
 
             .modal-content {
@@ -464,14 +491,48 @@
                 font-size: 0.95rem;
             }
 
+            /* 手機版 header 佈局調整 */
+            .game-header {
+                padding: 10px; /* 縮小內距 */
+                gap: 5px; /* 縮小網格間距 */
+            }
+
+            .game-title {
+                font-size: clamp(1.2rem, 3vw, 2rem); /* 標題字體縮小 */
+            }
+
+            .score-board {
+                gap: 5px; /* 計分板項目間距縮小 */
+                flex-wrap: nowrap; /* 強制不換行 */
+                overflow-x: auto; /* 如果還是超出，允許水平滾動 */
+                justify-content: space-around; /* 讓內容左右分散 */
+                padding-bottom: 5px; /* 滾動條預留空間 */
+                -ms-overflow-style: none; /* 隱藏 IE/Edge 滾動條 */
+                scrollbar-width: none; /* 隱藏 Firefox 滾動條 */
+            }
+            .score-board::-webkit-scrollbar { /* 隱藏 WebKit 瀏覽器滾動條 */
+                display: none;
+            }
+
+            .score-item {
+                font-size: 0.85rem; /* 計分板文字縮小 */
+                padding: 6px 10px; /* 計分板內距縮小 */
+                min-width: unset; /* 讓內容決定寬度，更緊湊 */
+                flex-shrink: 0; /* 防止項目被壓縮過小 */
+            }
+            .score-item i {
+                font-size: 0.9rem;
+            }
+
+            /* 手機版控制按鈕維持水平排列 */
             .game-controls-buttons {
-                top: 10px;
-                right: 10px;
+                flex-direction: row; 
+                gap: 5px; /* 按鈕間距 */
             }
             .game-control-btn {
-                width: 40px;
-                height: 40px;
-                font-size: 1rem;
+                width: 35px; /* 按鈕尺寸縮小 */
+                height: 35px;
+                font-size: 0.9rem;
             }
             .mascot {
                 bottom: 10px;
@@ -513,19 +574,19 @@
     <div class="game-container">
         <div class="game-header">
             <h1 class="game-title">小白不吃七遊戲系統</h1>
+            <!-- 遊戲控制按鈕，現在由 Grid 佈局控制位置 (標題正下方) -->
+            <div class="game-controls-buttons">
+                <button id="pauseBtn" class="game-control-btn" title="暫停遊戲 (P)"><i class="fas fa-pause"></i></button>
+                <button id="rulesBtn" class="game-control-btn" title="遊戲規則"><i class="fas fa-question"></i></button>
+            </div>
             <div class="score-board">
                 <div class="score-item"><i class="fas fa-star"></i> 分數: <span id="score">0</span></div>
                 <div class="score-item"><i class="fas fa-heart"></i> 生命: <span id="lives">7</span></div> 
-                <div class="score-item"><i class="fas fa-bullseye"></i> 目標: <span id="targetScore">777</span></div>
+                <!-- 已移除「目標」顯示 -->
                 <div class="score-item"><i class="fas fa-clock"></i> 時間: <span id="timer">77</span></div>
             </div>
         </div>
         
-        <div class="game-controls-buttons">
-            <button id="pauseBtn" class="game-control-btn" title="暫停遊戲 (P)"><i class="fas fa-pause"></i></button>
-            <button id="rulesBtn" class="game-control-btn" title="遊戲規則"><i class="fas fa-question"></i></button>
-        </div>
-
         <div class="game-area">
             <div class="player" id="player">
                 <img src="xiaobai-img/一般小白.png" alt="小白" id="playerImg">
@@ -577,9 +638,9 @@
                     <li><strong class="yellow-text">分數獲取</strong>：
                         <ul>
                             <li>收集<strong>非 7 的倍數</strong>數字 (例如：1, 2, 3, 4, 5, 6, 8...)，可獲得該數字的分數。此時會伴隨<strong class="pink-text">粉紅色</strong>爆炸特效。</li>
-                            <li>如果撿到 <strong class="yellow-text">「紅包」</strong>，恭喜您！直接獲得 <strong>100 分</strong>！道具顯示「紅包」字樣，伴隨<strong class="yellow-text">金色</strong>爆炸特效。</li>
-                            <li>如果撿到 <strong class="pink-text">「補血」</strong>道具，可恢復 <strong>1 點生命值</strong> (最多 <span id="rulesMaxLives">7</span> 點)！道具顯示「補血」字樣，伴隨<strong class="pink-text">粉紅色</strong>爆炸特效。</li>
-                            <li>如果撿到 <strong class="purple-text">「補秒」</strong>道具，可恢復 <strong>7 秒遊戲時間</strong> (最多 77 秒)！道具顯示「補秒」字樣，伴隨<strong class="purple-text">紫色</strong>爆炸特效。</li>
+                            <li>如果撿到 <strong class="yellow-text">「紅包」<i class="fas fa-money-bill-wave"></i></strong>，恭喜您！直接獲得 <strong>100 分</strong>！道具顯示<strong class="yellow-text">波浪鈔票圖示</strong>，伴隨<strong class="yellow-text">金色</strong>爆炸特效。</li>
+                            <li>如果撿到 <strong class="pink-text">「補血」<i class="fas fa-heart"></i></strong>道具，可恢復 <strong>1 點生命值</strong> (最多 <span id="rulesMaxLives">7</span> 點)！道具顯示<strong class="pink-text">愛心圖示</strong>，伴隨<strong class="pink-text">粉紅色</strong>爆炸特效。</li>
+                            <li>如果撿到 <strong class="purple-text">「補秒」<i class="fas fa-hourglass-half"></i></strong>道具，可恢復 <strong>7 秒遊戲時間</strong> (最多 77 秒)！道具顯示<strong class="purple-text">沙漏圖示</strong>，伴隨<strong class="purple-text">紫色</strong>爆炸特效。</li>
                         </ul>
                     </li>
                     <li><strong class="red-text">危險警示</strong>：
@@ -643,7 +704,7 @@
                 this.bloodPackChance = 0.05; 
                 this.timeBoostChance = 0.04; 
                 this.sevenMultipleChance = 0.5; 
-                this.playerSpeedMultiplier = 1.25; 
+                this.playerSpeedMultiplier = 2.5; // 提高小白的移動速度
 
                 this.init(showRulesAtBeginning);
             }
@@ -655,7 +716,7 @@
                 document.getElementById('rulesTargetScore').textContent = this.targetScore;
                 document.getElementById('rulesGameTime').textContent = this.initialGameTime;
                 document.getElementById('rulesMaxLives').textContent = this.maxLives; 
-                document.getElementById('targetScore').textContent = this.targetScore;
+                // document.getElementById('targetScore').textContent = this.targetScore; // 移除此行，因為目標已不再顯示在計分板
                 document.getElementById('timer').textContent = this.initialGameTime; 
 
                 if (showRulesAtBeginning) {
@@ -841,7 +902,19 @@
                                           ${isBloodPack ? 'number-blood-pack' : ''}
                                           ${isTimeBoost ? 'number-time-boost' : ''}`; 
                 
-                numberElement.textContent = value;
+                // --- 修改開始: 使用 Font Awesome 圖示替換文字 ---
+                let displayContent;
+                if (isRedEnvelope) {
+                    displayContent = '<i class="fas fa-money-bill-wave"></i>'; // 更換為波浪鈔票圖示
+                } else if (isBloodPack) {
+                    displayContent = '<i class="fas fa-heart"></i>'; 
+                } else if (isTimeBoost) {
+                    displayContent = '<i class="fas fa-hourglass-half"></i>'; 
+                } else {
+                    displayContent = value.toString(); 
+                }
+                numberElement.innerHTML = displayContent; // 使用 innerHTML 插入圖示或文字
+                // --- 修改結束 ---
                 
                 numberElement.style.left = Math.random() * 90 + 5 + '%'; 
                 
